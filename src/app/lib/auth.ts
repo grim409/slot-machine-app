@@ -1,9 +1,9 @@
 // src/app/lib/auth.ts
 import { NextAuthOptions } from "next-auth";
+import EmailProvider from "next-auth/providers/email";
+import GoogleProvider from "next-auth/providers/google";
 import { UpstashRedisAdapter } from "@next-auth/upstash-redis-adapter";
 import { redis } from "./redis-client";
-import GoogleProvider from "next-auth/providers/google";
-import EmailProvider from "next-auth/providers/email";
 
 export const authOptions: NextAuthOptions = {
   adapter: UpstashRedisAdapter(redis),
@@ -15,30 +15,30 @@ export const authOptions: NextAuthOptions = {
     }),
 
     EmailProvider({
-      server: {
-        host: process.env.EMAIL_SERVER_HOST,
-        port: process.env.EMAIL_SERVER_PORT
-          ? Number(process.env.EMAIL_SERVER_PORT)
-          : 587,
-        auth: {
-          user: process.env.EMAIL_SERVER_USER,
-          pass: process.env.EMAIL_SERVER_PASSWORD,
-        },
-      },
+      // we’re intercepting email sends in dev
+      server: { host: "localhost", port: 587, auth: { user: "", pass: "" } },
       from: process.env.EMAIL_FROM,
+      async sendVerificationRequest({ identifier, url }) {
+        console.log(`\n📧 Magic link for ${identifier}: ${url}\n`);
+      },
     }),
   ],
 
-  session: {
-    strategy: "jwt",
+  session: { strategy: "jwt" },
+
+  pages: {
+    signIn: "/auth/signin",
+    newUser: "/auth/signup",
   },
 
   callbacks: {
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.sub!;
-      }
+      if (session.user) session.user.id = token.sub!;
       return session;
+    },
+
+    async redirect({ url, baseUrl }) {
+      return baseUrl;
     },
   },
 };

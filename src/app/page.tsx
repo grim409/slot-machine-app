@@ -1,23 +1,16 @@
 'use client';
 import React from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
-import SlotMachine from './components/SlotMachine';
+import SlotMachine from '../components/SlotMachine';
+import TitleScreen from '../components/TitleScreen';
 
 export default function HomePage() {
   const { data: session } = useSession();
 
-  // If there's no session *or* no user on the session, show Sign-in
   if (!session || !session.user) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <button onClick={() => signIn()} className="btn">
-          Sign in
-        </button>
-      </div>
-    );
+    return <TitleScreen />;
   }
 
-  // From here TS knows session.user is defined
   return (
     <>
       <div className="flex justify-between items-center">

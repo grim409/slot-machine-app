@@ -24,3 +24,18 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@layer utilities {
+  /* custom background-size utility */
+  .bg-[length\:200\%_200\%] {
+    background-size: 200% 200%;
+  }
+  /* animate the gradient */
+  .animate-gradient {
+    animation: gradient 10s ease infinite;
+  }
+  @keyframes gradient {
+    0%, 100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
+  }
+}

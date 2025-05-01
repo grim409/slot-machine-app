@@ -1,17 +1,19 @@
 import './globals.css';
 import React from 'react';
-import { SessionProvider } from 'next-auth/react';
-import { getServerSession } from 'next-auth';
-import { authOptions } from './lib/auth';
+import { Providers } from './providers';
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const session = await getServerSession(authOptions);
+export const metadata = {
+  title: 'Slot Machine',
+  description: '…',
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <SessionProvider session={session}>
+        <Providers>
           {children}
-        </SessionProvider>
+        </Providers>
       </body>
     </html>
   );
