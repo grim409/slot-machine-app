@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession }        from 'next-auth/next';
 import { authOptions }             from '../../lib/auth';
 import { redis }                   from '../../lib/redis-client';
-import { SYMBOLS, PAYLINES, PAYOUTS } from '../../../lib/slotConfig';
+import {
+  pickSymbol,
+  PAYLINES,
+  getPayoutTable,
+  SymbolType
+} from '../../../lib/slotConfig';
 
 const DAILY_BONUS   = 10;
 const MILLIS_IN_DAY = 1000 * 60 * 60 * 24;
@@ -24,8 +29,7 @@ export async function GET() {
   let balance   = parseInt(rawBal ?? '0', 10);
 
   if (rawLast) {
-    const lastDate = new Date(rawLast);
-    const days     = Math.floor((Date.now() - lastDate.getTime()) / MILLIS_IN_DAY);
+    const days = Math.floor((Date.now() - new Date(rawLast).getTime()) / MILLIS_IN_DAY);
     if (days >= 1) {
       balance += DAILY_BONUS * days;
       await redis.hset(key, { balance: balance.toString(), lastReset: today });
@@ -57,35 +61,35 @@ export async function POST(request: NextRequest) {
   }
   balance -= bet;
 
-  // build 3×5 grid
+  // 1) Build weighted 3×5 grid
   const grid: string[][] = Array.from({ length: NUM_ROWS }, () =>
-    Array.from({ length: NUM_REELS }, () =>
-      SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]
-    )
+    Array.from({ length: NUM_REELS }, () => pickSymbol())
   );
 
-  // unlock lines
+  // 2) Unlock paylines by bet
   const unlockCount = Math.min(
     PAYLINES.length,
     Math.max(1, Math.ceil((bet / MAX_BET) * PAYLINES.length))
   );
   const activeLines = PAYLINES.slice(0, unlockCount);
 
-  // evaluate wins
+  // 3) Evaluate wins using symbol‐specific tables
   let totalWin = 0;
   for (const line of activeLines) {
-    const symbolsOnLine = line.map(([r,c]) => grid[r][c]);
+    const symbolsOnLine = line.map(([r, c]) => grid[r][c] as SymbolType);
     const first = symbolsOnLine[0];
     let count = 1;
-    for (let i=1; i<symbolsOnLine.length; i++) {
+    for (let i = 1; i < symbolsOnLine.length; i++) {
       if (symbolsOnLine[i] === first) count++;
       else break;
     }
     if (count >= 3) {
-      totalWin += bet * (PAYOUTS[count as 3|4|5] ?? 0);
+      const table = getPayoutTable(first);
+      totalWin += bet * (table[count as 3|4|5] ?? 0);
     }
   }
 
+  // 4) Persist and respond
   balance += totalWin;
   await redis.hset(key, { balance: balance.toString() });
 
