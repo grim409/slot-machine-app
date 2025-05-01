@@ -1,36 +1,127 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎰 Slots of Fun
 
-## Getting Started
+A modern, fully-client slot-machine game built with **Next.js**, **React**, **Tailwind CSS** + **DaisyUI**, **NextAuth**, and **Upstash Redis**.  
+Authentication via Google & email magic-link, backed by Redis. Real-time spins, paylines, confetti, and a “Buy Coins” stub.
 
-First, run the development server:
+---
+
+## 🚀 Features
+
+- **Auth**: NextAuth w/ Google and EmailProvider using magic links  
+- **User store**: Upstash Redis adapter for sessions + user data  
+- **Title Screen**: Animated gradient, pulsing title, “Play Now” link to `/auth/signin`  
+- **Custom Sign-In/Sign-Up** pages with Tailwind + DaisyUI styling  
+- **API**:
+  - `GET /api/coins` → daily reset to 10 coins  
+  - `POST /api/coins?bet=X` → deducts X, spins 5 reels, payouts, save balance  
+- **Slot Machine** (`5×3` grid):
+  - CSS keyframe spin animation  
+  - Big “🎰 SPIN 🎰” button  
+  - **Bet One & Spin**, **Max Bet & Spin**, **Reset Bet**, **Increment Bet** controls  
+  - Balance & current bet display  
+  - Payline detection (horizontal + two diagonals), cells highlighted on win  
+  - Full-screen confetti (via `react-confetti`), intensity/duration scaled by win  
+  - DaisyUI alert banner (won’t shift layout)  
+  - “Buy Coins” stub modal (+10 / +25 / +50 coins)
+
+---
+
+## 🛠 Tech Stack
+
+- **Next.js 13 (App Router)**  
+- **React + TypeScript**  
+- **Tailwind CSS** & **DaisyUI**  
+- **NextAuth.js** w/ `@next-auth/upstash-redis-adapter`  
+- **Upstash Redis** (REST API)  
+- **react-confetti**  
+- **Vercel** deployment  
+
+---
+
+## 🔧 Getting Started
+
+### Prerequisites
+
+- Node.js ≥16  
+- NPM or Yarn  
+- Upstash Redis URL & token  
+- (Optional) SMTP credentials for email magic links
+
+### Installation
+
+```bash
+git clone <your-repo-url>
+cd slot-machine-app
+npm install
+```
+
+### Environment Variables
+
+Create a `.env.local`:
+
+```env
+UPSTASH_REDIS_REST_URL=https://<your-upstash-host>.upstash.io
+UPSTASH_REDIS_REST_TOKEN=<your-upstash-token>
+NEXTAUTH_SECRET=<random-base64-string>
+GOOGLE_CLIENT_ID=<google-client-id>
+GOOGLE_CLIENT_SECRET=<google-client-secret>
+EMAIL_FROM="Slots of Fun <no-reply@yourdomain.com>"
+# For production SMTP, set EMAIL_SERVER_*
+```
+
+### Run Locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Build & Deploy
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 📁 Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+public/
+└── win.mp3
+src/
+└── app/
+    └── api/
+        ├── auth/[...nextauth]/route.ts
+        └── coins/route.ts
+    ├── auth/
+    │   ├── signin/page.tsx
+    │   └── signup/page.tsx
+    ├── layout.tsx
+    ├── page.tsx
+    └── providers.tsx
+  components/
+    ├── TitleScreen.tsx
+    └── SlotMachine.tsx
+  lib/
+    ├── auth.ts
+    └── redis-client.ts
+  types/next-auth.d.ts
+globals.css
+next.config.js
+tsconfig.json
+package.json
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🏗 Next Steps
 
-## Deploy on Vercel
+1. Advanced paylines (V, zig-zag)  
+2. Sound effects (add win.mp3)  
+3. Real payments (Stripe modal)  
+4. Spin history & leaderboard  
+5. Mobile responsiveness  
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Enjoy building **Slots of Fun**! 🎉
