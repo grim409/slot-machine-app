@@ -4,7 +4,7 @@ import { authOptions }             from '../../lib/auth';
 import { redis }                   from '../../lib/redis-client';
 import {
   pickSymbol,
-  PAYLINES,
+  getActivePaylines,
   getPayoutTable,
   SymbolType
 } from '../../../lib/slotConfig';
@@ -17,15 +17,14 @@ const MAX_BET       = parseInt(process.env.MAX_BET ?? '5000', 10);
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const userId = session.user.id as string;
   const key    = `coins:${userId}`;
   const today  = new Date().toDateString();
 
-  const rawLast = await redis.hget(key, 'lastReset') as string | null;
-  const rawBal  = await redis.hget(key, 'balance')   as string | null;
+  const rawLast = await redis.hget(key, 'lastReset') as string|null;
+  const rawBal  = await redis.hget(key, 'balance')   as string|null;
   let balance   = parseInt(rawBal ?? '0', 10);
 
   if (rawLast) {
@@ -44,39 +43,33 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const userId = session.user.id as string;
   const key    = `coins:${userId}`;
-
   const { searchParams } = new URL(request.url);
+
   let bet = Math.max(1, parseInt(searchParams.get('bet') ?? '1', 10));
   bet = Math.min(bet, MAX_BET);
 
-  const rawBal = await redis.hget(key, 'balance') as string | null;
+  const rawBal = await redis.hget(key, 'balance') as string|null;
   let balance = parseInt(rawBal ?? '0', 10);
-  if (balance < bet) {
-    return NextResponse.json({ error: 'Insufficient coins' }, { status: 400 });
-  }
+  if (balance < bet) return NextResponse.json({ error: 'Insufficient coins' }, { status: 400 });
+
   balance -= bet;
 
-  // 1) Build weighted 3×5 grid
+  // 1) Build the weighted 3×5 grid
   const grid: string[][] = Array.from({ length: NUM_ROWS }, () =>
     Array.from({ length: NUM_REELS }, () => pickSymbol())
   );
 
-  // 2) Unlock paylines by bet
-  const unlockCount = Math.min(
-    PAYLINES.length,
-    Math.max(1, Math.ceil((bet / MAX_BET) * PAYLINES.length))
-  );
-  const activeLines = PAYLINES.slice(0, unlockCount);
+  // 2) Determine active paylines
+  const activeLines = getActivePaylines(bet);
 
-  // 3) Evaluate wins using symbol‐specific tables
+  // 3) Evaluate line wins & micro-wins
   let totalWin = 0;
   for (const line of activeLines) {
-    const symbolsOnLine = line.map(([r, c]) => grid[r][c] as SymbolType);
+    const symbolsOnLine = line.map(([r,c]) => grid[r][c] as SymbolType);
     const first = symbolsOnLine[0];
     let count = 1;
     for (let i = 1; i < symbolsOnLine.length; i++) {
@@ -86,10 +79,22 @@ export async function POST(request: NextRequest) {
     if (count >= 3) {
       const table = getPayoutTable(first);
       totalWin += bet * (table[count as 3|4|5] ?? 0);
+    } else if (count === 2) {
+      // 2-of-a-kind micro-payout
+      totalWin += bet; 
     }
   }
 
-  // 4) Persist and respond
+  // 4) Scatter payouts (⭐ anywhere)
+  const flat = grid.flat();
+  const stars = flat.filter(s => s === '⭐').length;
+  if (stars >= 3) {
+    // e.g. 3→2×, 4→5×, 5→10×
+    const scatterTable: Record<number, number> = { 3:2, 4:5, 5:10 };
+    totalWin += bet * (scatterTable[stars] ?? 0);
+  }
+
+  // 5) Persist & respond
   balance += totalWin;
   await redis.hset(key, { balance: balance.toString() });
 
