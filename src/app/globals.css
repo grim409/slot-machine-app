@@ -39,3 +39,12 @@ body {
     50%      { background-position: 100% 50%; }
   }
 }
+
+@keyframes reel-spin {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-100%); }
+}
+
+.spinning .reel-cell {
+  animation: reel-spin 0.4s steps(1) infinite;
+}

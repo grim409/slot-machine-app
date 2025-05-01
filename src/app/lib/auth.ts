@@ -1,4 +1,3 @@
-// src/app/lib/auth.ts
 import { NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
@@ -15,7 +14,6 @@ export const authOptions: NextAuthOptions = {
     }),
 
     EmailProvider({
-      // we’re intercepting email sends in dev
       server: { host: "localhost", port: 587, auth: { user: "", pass: "" } },
       from: process.env.EMAIL_FROM,
       async sendVerificationRequest({ identifier, url }) {
@@ -37,7 +35,7 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
 
-    async redirect({ url, baseUrl }) {
+    async redirect({ baseUrl }) {
       return baseUrl;
     },
   },

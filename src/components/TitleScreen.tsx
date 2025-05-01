@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { signIn } from 'next-auth/react';
+import Link from 'next/link';
 
 export default function TitleScreen() {
   return (
@@ -33,17 +33,18 @@ export default function TitleScreen() {
             Spin the reels, chase the jackpots, and see if lady luck is on your side!
           </p>
 
-          <button
-            onClick={() => signIn()}
-            className="
-              mt-4 w-full py-3 rounded-lg
-              bg-red-600 hover:bg-red-700
-              text-white text-xl font-bold
-              shadow-lg transition
-            "
-          >
-            Play Now
-          </button>
+          <Link href="/auth/signin">
+            <button
+              className="
+                mt-4 w-full py-3 rounded-lg
+                bg-red-600 hover:bg-red-700
+                text-white text-xl font-bold
+                shadow-lg transition
+              "
+            >
+              Play Now
+            </button>
+          </Link>
         </div>
       </div>
     </div>
