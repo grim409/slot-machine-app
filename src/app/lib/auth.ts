@@ -8,9 +8,6 @@ import { google } from "googleapis";
 
 const OAuth2 = google.auth.OAuth2;
 
-/**
- * Sends the NextAuth magic link via Gmail SMTP using OAuth2.
- */
 async function sendMagicLink({
   identifier: email,
   url,
@@ -18,24 +15,20 @@ async function sendMagicLink({
   identifier: string;
   url: string;
 }) {
-  // 1) Create an OAuth2 client with your env credentials
   const oauth2Client = new OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    "https://developers.google.com/oauthplayground" // this can be any valid redirect
+    "https://developers.google.com/oauthplayground" 
   );
   oauth2Client.setCredentials({
-    // your refresh token from env
     refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
   });
 
-  // 2) Retrieve a fresh access token
   const { token: accessToken } = await oauth2Client.getAccessToken();
   if (!accessToken) {
     throw new Error("Failed to fetch Gmail access token");
   }
 
-  // 3) Configure Nodemailer to use Gmail and OAuth2
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -48,7 +41,6 @@ async function sendMagicLink({
     },
   });
 
-  // 4) Send the actual magic link email
   await transporter.sendMail({
     from: process.env.EMAIL_ADDRESS,
     to: email,
@@ -63,7 +55,6 @@ export const authOptions: NextAuthOptions = {
 
   providers: [
     EmailProvider({
-      // nodemailer transport options
       server: {
         service: "gmail",
         auth: {

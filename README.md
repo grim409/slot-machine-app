@@ -1,13 +1,13 @@
 # 🎰 Slots of Fun
 
 A modern, fully-client slot-machine game built with **Next.js**, **React**, **Tailwind CSS** + **DaisyUI**, **NextAuth**, and **Upstash Redis**.  
-Authentication via Google & email magic-link, backed by Redis. Real-time spins, paylines, confetti, and a “Buy Coins” stub.
+Authentication via email magic-link, backed by Redis. Real-time spins, paylines, confetti, and a “Buy Coins” stub.
 
 ---
 
 ## 🚀 Features
 
-- **Auth**: NextAuth w/ Google and EmailProvider using magic links  
+- **Auth**: NextAuth w/ EmailProvider using magic links  
 - **User store**: Upstash Redis adapter for sessions + user data  
 - **Title Screen**: Animated gradient, pulsing title, “Play Now” link to `/auth/signin`  
 - **Custom Sign-In/Sign-Up** pages with Tailwind + DaisyUI styling  
