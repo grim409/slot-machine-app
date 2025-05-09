@@ -115,13 +115,3 @@ package.json
 ```
 
 ---
-
-## 🏗 Next Steps
-
-1. Advanced paylines (V, zig-zag)  
-2. Sound effects (add win.mp3)  
-3. Real payments (Stripe modal)  
-4. Spin history & leaderboard  
-5. Mobile responsiveness  
-
-Enjoy building **Slots of Fun**! 🎉
