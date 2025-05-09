@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
 
   pages: {
     signIn: "/auth/signin",
-    newUser: "/auth/signup",
+    //newUser: "/auth/signup",
   },
 
   callbacks: {
