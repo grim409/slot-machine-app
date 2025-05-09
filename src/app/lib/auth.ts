@@ -15,7 +15,7 @@ oAuth2Client.setCredentials({
 })
 
 async function sendMagicLink(params: SendVerificationRequestParams) {
-  const { identifier: email, url, provider } = params
+  const { identifier: email, url } = params
 
   const { token: accessToken } = await oAuth2Client.getAccessToken()
   if (!accessToken) throw new Error("Failed to fetch access token from Google")
